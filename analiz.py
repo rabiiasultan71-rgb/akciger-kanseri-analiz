@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import LabelEncoder
 
-# --- 1. GÖRSEL VE OKUNABİLİRLİK ---
+# --- 1. GÖRSEL AYARLAR ---
 def arka_plan_ekle():
     resim_url = "https://raw.githubusercontent.com/rabiiasultan71-rgb/akciger-kanseri-analiz/main/arkaplan.jpg" 
     st.markdown(
@@ -49,69 +49,87 @@ def model_hazirla():
 model = model_hazirla()
 
 # --- 3. ARAYÜZ ---
-st.title("🩺 Akciğer Kanseri Risk Analizi")
+st.title("🩺 Detaylı Akciğer Kanseri Analiz Sistemi")
 
-# KİŞİSEL
+st.write("### 📍 Genel Bilgiler")
 yas = st.number_input("Yaşınız:", min_value=1, max_value=110, value=25)
 cinsiyet = st.selectbox("Cinsiyetiniz:", ["Erkek", "Kadın"])
 
-# SİGARA DETAYLI
+st.write("### 📝 Detaylı Sağlık Anketi")
+
+# SİGARA
 sigara = st.radio("Sigara kullanıyor musunuz?", ["Hayır", "Evet"], horizontal=True)
 sigara_skor = 1
 if sigara == "Evet":
-    sigara_siklik = st.selectbox("Sigara kullanım sıklığınız?", ["Nadiren", "Günde yarım paket", "Günde 1 paket", "Günde 1 paketten fazla"])
-    sigara_skor = 3 if "1 paket" in sigara_siklik else 2
+    sigara_detay = st.selectbox("Kullanım Sıklığı:", ["Günde birkaç adet", "Yarım paket", "1 paket", "1 paketten fazla"])
+    sigara_skor = 3 if "1 paket" in sigara_detay else 2
 
-# ALKOL DETAYLI
-alkol = st.radio("Alkol kullanıyor musunuz?", ["Hayır", "Evet"], horizontal=True)
+# ALKOL
+alkol = st.radio("Alkol tüketiyor musunuz?", ["Hayır", "Evet"], horizontal=True)
 alkol_skor = 1
 if alkol == "Evet":
-    alkol_siklik = st.selectbox("Alkol kullanım sıklığınız nedir?", ["Ayda bir veya daha az", "Haftada birkaç kez", "Her gün"])
+    alkol_detay = st.selectbox("Tüketim Sıklığı:", ["Haftada 1-2", "Haftada 3-4", "Her gün"])
     alkol_skor = 2
 
-# DİĞER SORULAR
-parmak = st.radio("Parmaklarda sararma var mı?", ["Hayır", "Evet"], horizontal=True)
-anksiyete = st.radio("Anksiyete yaşıyor musunuz?", ["Hayır", "Evet"], horizontal=True)
-kronik = st.radio("Kronik bir rahatsızlığınız var mı?", ["Hayır", "Evet"], horizontal=True)
-yorgunluk = st.radio("Sık yorgunluk hissediyor musunuz?", ["Hayır", "Evet"], horizontal=True)
-hirilti = st.radio("Hırıltılı solunum var mı?", ["Hayır", "Evet"], horizontal=True)
+# ÖKSÜRÜK
+oksuruk = st.radio("Sürekli bir öksürüğünüz var mı?", ["Hayır", "Evet"], horizontal=True)
+oksuruk_skor = 1
+if oksuruk == "Evet":
+    oksuruk_detay = st.selectbox("Öksürük Şiddeti:", ["Hafif/Kuru", "Balgamlı/Sık", "Şiddetli/Kanlı"])
+    oksuruk_skor = 3 if "Şiddetli" in oksuruk_detay else 2
 
-# NEFES DARLIĞI DETAYLI
+# NEFES DARLIĞI
 nefes = st.radio("Nefes darlığı yaşıyor musunuz?", ["Hayır", "Evet"], horizontal=True)
 nefes_skor = 1
 if nefes == "Evet":
-    nefes_detay = st.selectbox("Nefes darlığı ne zaman oluyor?", ["Sadece yürürken", "Merdiven çıkarken", "Dinlenirken bile"])
+    nefes_detay = st.selectbox("Nefes Darlığı Durumu:", ["Yürürken oluyor", "Merdiven çıkarken", "Dinlenirken bile var"])
     nefes_skor = 3 if "Dinlenirken" in nefes_detay else 2
 
-oksuruk = st.radio("Sürekli öksürük var mı?", ["Hayır", "Evet"], horizontal=True)
-yutkunma = st.radio("Yutkunmada güçlük çekiyor musunuz?", ["Hayır", "Evet"], horizontal=True)
-gogus = st.radio("Göğüs ağrısı çekiyor musunuz?", ["Hayır", "Evet"], horizontal=True)
+# GÖĞÜS AĞRISI
+gogus = st.radio("Göğüs bölgenizde ağrı var mı?", ["Hayır", "Evet"], horizontal=True)
+gogus_skor = 1
+if gogus == "Evet":
+    gogus_detay = st.selectbox("Ağrı Şiddeti:", ["Hafif batma", "Baskı hissi", "Şiddetli ağrı"])
+    gogus_skor = 3 if "Şiddetli" in gogus_detay else 2
 
-# --- 4. ANALİZ ---
+# YORGUNLUK
+yorgunluk = st.radio("Aşırı yorgunluk ve halsizlik var mı?", ["Hayır", "Evet"], horizontal=True)
+yorgunluk_skor = 2 if yorgunluk == "Evet" else 1
+
+# YUTKUNMA GÜÇLÜĞÜ
+yutkunma = st.radio("Yutkunmada zorluk çekiyor musunuz?", ["Hayır", "Evet"], horizontal=True)
+yutkunma_skor = 2 if yutkunma == "Evet" else 1
+
+# DİĞERLERİ
+parmak = st.radio("Parmak uçlarında sararma/lekeler var mı?", ["Hayır", "Evet"], horizontal=True)
+hirilti = st.radio("Hırıltılı solunum (vızıltı) var mı?", ["Hayır", "Evet"], horizontal=True)
+anksiyete = st.radio("Anksiyete veya yoğun stres var mı?", ["Hayır", "Evet"], horizontal=True)
+kronik = st.radio("Bilinen bir kronik hastalığınız var mı?", ["Hayır", "Evet"], horizontal=True)
+
+# --- 4. ANALİZ BUTONU ---
 if st.button("RİSKİ ANALİZ ET"):
     def eh(deger): return 2 if deger == "Evet" else 1
     
     input_data = [
         1 if cinsiyet == "Erkek" else 0, yas,
-        sigara_skor, eh(parmak), eh(anksiyete), 1, # Akran baskısı sabit
-        eh(kronik), eh(yorgunluk), 1, 
-        eh(hirilti), alkol_skor, eh(oksuruk), nefes_skor,
-        eh(yutkunma), eh(gogus)
+        sigara_skor, eh(parmak), eh(anksiyete), 1, 
+        eh(kronik), yorgunluk_skor, 1, 
+        eh(hirilti), alkol_skor, oksuruk_skor, nefes_skor,
+        yutkunma_skor, gogus_skor
     ]
 
     prob = model.predict_proba([input_data])[0][1]
-    # Gerçekçilik için yaş ve şiddetli belirti çarpanı
-    risk_yuzde = min(prob * 100, 99.2)
+    final_risk = min(prob * 100, 99.4)
 
     st.divider()
-    st.write(f"## Tahmini Risk Skoru: %{risk_yuzde:.2f}")
+    st.write(f"## Tahmini Risk Skoru: %{final_risk:.2f}")
     st.info("📊 **Yapay Zeka Model Doğruluk Oranı: %88.50**")
     
-    if risk_yuzde > 60:
-        st.error("⚠️ YÜKSEK RİSK: Uzman bir doktora görünmeniz önerilir.")
+    if final_risk > 60:
+        st.error("⚠️ YÜKSEK RİSK: Verileriniz yüksek risk grubunda görünüyor. Lütfen bir doktora başvurun.")
     else:
-        st.success("✅ DÜŞÜK RİSK: Mevcut verilere göre risk düşük görünüyor.")
+        st.success("✅ DÜŞÜK RİSK: Mevcut verilere göre riskiniz düşük seviyededir.")
 
-# UYARI
+# ALT BİLGİ
 st.divider()
-st.caption("Not: Bu proje tamamen yapay zeka eğitim amaçlıdır. Tıbbi tavsiye yerine geçmez.")
+st.caption("Bu çalışma bir yapay zeka projesidir. Kesin teşhis için tıbbi muayene şarttır.")
